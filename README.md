@@ -13,7 +13,10 @@ $data = array(
         'secret' => 'test_secret', // secret
     )
 );
-$client->setKey($url)->send($data)
+
+if ($client->setKey($url)->send($data)) {
+    // success
+}
 ```
 
 # test
