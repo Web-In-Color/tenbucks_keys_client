@@ -32,8 +32,7 @@
 final class TenbucksKeysClient
 {
 
-    // const URL = 'https://apps.tenbucks.io/';
-    const URL = 'http://symfony.local/app_dev.php/';
+    const URL = 'https://apps.tenbucks.io/';
 
     /**
      * @var string Key used to sign data 

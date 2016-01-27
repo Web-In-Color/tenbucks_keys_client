@@ -45,7 +45,7 @@ class TenbucksKeysClientTest extends PHPUnit_Framework_TestCase
     {
         // Client
         $client = new TenbucksKeysClient();
-        $url = 'http://example.org';
+        $url = 'http://localhost';
         $data = array(
             'url'         => $url, // complete (with protocol) shop url
             'platform'    => 'TestPlatform', // Prestashop|Magento|WooCommerce
