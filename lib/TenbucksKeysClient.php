@@ -29,25 +29,67 @@
  *
  * @author Gary P. <gary@webincolor.fr>
  */
-class TenbucksKeysClient
+final class TenbucksKeysClient
 {
 
     // const URL = 'https://apps.tenbucks.io/';
-    const URL = 'https://symfony.local/app_dev.php/';
+    const URL = 'http://symfony.local/app_dev.php/';
 
     /**
      * @var string Key used to sign data 
      */
     private $encryption_key;
+    
+    /**
+     * Retrieve encryption key
+     * 
+     * @param string $url shop url
+     * @return \TenbucksKeysClient
+     * @throws Exception
+     */
+    public function setKey($url)
+    {
+        $query = $this->call('key_manager/new', array(
+            'url' => $url
+        ));
+        
+        if (!array_key_exists('key', $query)) {
+            throw new Exception('Can\'t retrieve encryption key.');
+        }
+
+        $this->encryption_key = $query['key'];
+
+        return $this;
+    }
+    
+    /**
+     * Send API keys
+     * @param array $data
+     * @return bool operation success
+     * 
+     */
+    public function send(array $data)
+    {
+        $query = $this->call('key_manager/set', $data);
+        return array_key_exists('success', $query) ? (bool)$query['success'] : false;
+    }
 
     private function call($path, array $data = array())
     {
         $url = self::URL.preg_replace('/^\//', '', $path);
         
-        $post_data = empty($this->encryption_key) ? http_build_query($data) : $this->getWebToken($data);
+        $request_headers = array(
+            'Accept: application/json',
+			'User-Agent: TenbucksKeys API Client'
+		);
+        
+        if (!empty($this->encryption_key)) {
+            $request_headers[] = 'X-Tenbucks-Signature: '.$this->getSignature($data);
+        }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -56,8 +98,21 @@ class TenbucksKeysClient
 
         // Process
         $response = curl_exec($ch);
+        if ( empty( $response ) ) {
+			$response = array(
+				'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+				'error' => curl_error($ch)
+			);
+		}
         curl_close($ch);
-        return json_decode($response, true);
+
+        return is_array($response) ? $response : json_decode($response, true);
+    }
+    
+    private function getSignature(array $data)
+    {
+        ksort($data);
+        return hash_hmac('sha256', http_build_query($data), $this->encryption_key);
     }
 
 }
