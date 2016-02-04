@@ -29,34 +29,28 @@
  *
  * @author Gary P. <gary@webincolor.fr>
  */
-class TenbucksKeysClientTest extends PHPUnit_Framework_TestCase
+class TenbucksRegistrationClientTest extends PHPUnit_Framework_TestCase
 {
-
-    public function testSetKey()
-    {
-        // Client
-        $client = new TenbucksKeysClient();
-
-        // Assert
-        $this->assertInstanceOf('TenbucksKeysClient', $client->setKey('http://example.org'));
-    }
-
     public function testSend()
     {
         // Client
-        $client = new TenbucksKeysClient();
-        $url = 'http://localhost';
-        $data = array(
-            'url'         => $url, // complete (with protocol) shop url
-            'platform'    => 'TestPlatform', // Prestashop|Magento|WooCommerce
+        $client = new TenbucksRegistrationClient();
+        $opts = array(
+            'email' => 'joe.doe@example.org',
+            'sponsor' => 'jane.doe@example.org', // optionnal
+            'company' => 'My company name',
+            'platform' => 'WooCommerce',
+            'locale' => 'fr',
+            'country' => 'FR',
+            'url' => 'http://localhost',
             'credentials' => array(
-                'key'    => md5('test_key'), // key
-                'secret' => md5('test_secret'), // secret
+                'api_key'    => md5('test_key'), // key
+                'api_secret' => md5('test_secret'), // secret
             )
         );
 
         // Assert
-        $this->assertTrue($client->setKey($url)->send($data));
+        $this->assertTrue($client->send($opts));
     }
 
 }

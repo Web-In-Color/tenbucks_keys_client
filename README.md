@@ -1,25 +1,32 @@
-# TenbucksKeysClient
+# TenbucksRegistrationClient
 Send API keys TenBucks API server
 
 # Usage
 ```php
-$client = new TenbucksKeysClient();
-$url = 'http://example.org';
-$data = array(
-    'url'         => $url, // MANDATORY: complete (with protocol) shop url
-    'platform'    => 'TestPlatform', // Prestashop|Magento|WooCommerce
+// Client
+$client = new TenbucksRegistrationClient();
+
+// Data
+$opts = array(
+    'email' => 'joe.doe@example.org',
+    'sponsor' => 'jane.doe@example.org', // optionnal
+    'company' => 'My company name',
+    'platform' => 'WooCommerce',
+    'locale' => 'fr',
+    'country' => 'FR',
+    'url' => 'http://localhost',
     'credentials' => array(
-        'key'    => 'test_key', // key
-        'secret' => 'test_secret', // secret
+        'key'    => md5('test_key'), // key
+        'secret' => md5('test_secret'), // secret
     )
 );
 
-if ($client->setKey($url)->send($data)) {
+if ($client->send($opts)) {
     // success
 }
 ```
 
 # test
 ```bash
-$ phpunit --bootstrap lib/TenbucksKeysClient.php tests/TenbucksKeysClientTest
+$ phpunit --bootstrap lib/TenbucksRegistrationClient.php tests/TenbucksRegistrationClientTest
 ```

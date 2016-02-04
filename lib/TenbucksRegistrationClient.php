@@ -29,59 +29,98 @@
  *
  * @author Gary P. <gary@webincolor.fr>
  */
-final class TenbucksKeysClient
+final class TenbucksRegistrationClient
 {
 
-    const URL = 'https://apps.tenbucks.io/';
+    // const URL = 'https://apps.tenbucks.io/';
+    const URL = 'http://symfony.local/app_dev.php/';
 
     /**
-     * @var string Key used to sign data 
+    * @var array Mandatory fields list
+    */
+    private $mandatoryFields = array(
+        'email', // joe.doe@example.org
+        'company', // My company name
+        'platform', // WooCommerce|PrestaShop|Magento
+        'locale', // fr|en
+        'country', // FR, UK, US, ...
+        'url' // https://www.example.org <- with protocol, no trailing-slash
+    );
+
+    /**
+    * @var array Mandatory fields list
+    */
+    private $supportedLocales = array(
+        'en', // English - US
+        'fr', // Français - France
+    );
+
+    /**
+     * @var string Key used to sign data
      */
     private $encryption_key;
-    
+
+    /**
+    * Send API keys
+    * @param array $opts User data
+    * @return bool operation success
+    *
+    */
+    public function send(array $opts)
+    {
+        foreach ($this->mandatoryFields as $key) {
+            if (empty($opts[$key])) {
+                throw new Exception("Parameter $key is missing");
+            }
+        }
+        $locale = strtolower($opts['locale']);
+
+        if ( !in_array($locale, $this->supportedLocales) ) {
+            $locale = 'en';
+        }
+        $path = sprintf('registration/%s/site/new', $locale);
+        $query = $this->setKey($opts['url'])->call($path, $opts);
+        var_dump($query);
+        return array_key_exists('success', $query) ? (bool)$query['success'] : false;
+    }
+
     /**
      * Retrieve encryption key
-     * 
+     *
      * @param string $url shop url
      * @return \TenbucksKeysClient
      * @throws Exception
      */
-    public function setKey($url)
+    private function setKey($url)
     {
         $query = $this->call('key_manager/new', array(
             'url' => $url
         ));
-        
+
         if (!array_key_exists('key', $query)) {
-            throw new Exception('Can\'t retrieve encryption key.');
+            $msg = 'Can\'t retrieve encryption key.';
+
+            if (array_key_exists('error', $query)) {
+                $msg .= ' ('.print_r($query['error'], true).')';
+            }
+            throw new Exception($msg);
         }
 
         $this->encryption_key = $query['key'];
 
         return $this;
     }
-    
-    /**
-     * Send API keys
-     * @param array $data
-     * @return bool operation success
-     * 
-     */
-    public function send(array $data)
-    {
-        $query = $this->call('key_manager/set', $data);
-        return array_key_exists('success', $query) ? (bool)$query['success'] : false;
-    }
+
 
     private function call($path, array $data = array())
     {
         $url = self::URL.preg_replace('/^\//', '', $path);
-        
+
         $request_headers = array(
             'Accept: application/json',
 			'User-Agent: TenbucksKeys API Client'
 		);
-        
+
         if (!empty($this->encryption_key)) {
             $request_headers[] = 'X-Tenbucks-Signature: '.$this->getSignature($data);
         }
@@ -97,9 +136,11 @@ final class TenbucksKeysClient
 
         // Process
         $response = curl_exec($ch);
-        if ( empty( $response ) ) {
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ( empty( $response ) || !in_array($http_code, array(200, 201)) ) {
 			$response = array(
-				'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+				'http_code' => $http_code,
 				'error' => curl_error($ch)
 			);
 		}
@@ -107,7 +148,7 @@ final class TenbucksKeysClient
 
         return is_array($response) ? $response : json_decode($response, true);
     }
-    
+
     private function getSignature(array $data)
     {
         ksort($data);
