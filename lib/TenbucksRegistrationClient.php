@@ -32,8 +32,7 @@
 final class TenbucksRegistrationClient
 {
 
-    // const URL = 'https://apps.tenbucks.io/';
-    const URL = 'http://symfony.local/app_dev.php/';
+    const URL = 'https://apps.tenbucks.io/';
 
     /**
     * @var array Mandatory fields list
@@ -63,7 +62,7 @@ final class TenbucksRegistrationClient
     /**
     * Send API keys
     * @param array $opts User data
-    * @return bool operation success
+    * @return array server response
     *
     */
     public function send(array $opts)
