@@ -48,9 +48,10 @@ class TenbucksRegistrationClientTest extends PHPUnit_Framework_TestCase
                 'api_secret' => md5('test_secret'), // secret
             )
         );
-
+        $query = $client->send($opts);
+        $success = array_key_exists('success', $query) && (bool)$query['success'];
         // Assert
-        $this->assertTrue($client->send($opts));
+        $this->assertTrue($success);
     }
 
 }

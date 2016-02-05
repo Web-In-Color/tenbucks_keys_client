@@ -79,9 +79,8 @@ final class TenbucksRegistrationClient
             $locale = 'en';
         }
         $path = sprintf('registration/%s/site/new', $locale);
-        $query = $this->setKey($opts['url'])->call($path, $opts);
 
-        return array_key_exists('success', $query) ? (bool)$query['success'] : false;
+        return $this->setKey($opts['url'])->call($path, $opts);
     }
 
     /**

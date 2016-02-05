@@ -21,8 +21,12 @@ $opts = array(
     )
 );
 
-if ($client->send($opts)) {
+$query = $client->send($opts);
+$success = array_key_exists('success', $query) && (bool)$query['success'];
+if ($success) {
     // success
+} else {
+    // Error
 }
 ```
 
